@@ -159,8 +159,24 @@ $conn->close();
     <title>Calendario Curso Clínico</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="assets/css/style.css" rel="stylesheet">
-    <link href="estilo.css" rel="stylesheet">
+
+
+<!-- Favicons -->
+  <link href="assets/img/favicon.png" rel="icon">
+  <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.gstatic.com" rel="preconnect">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+  <!-- Template Main CSS File -->
+  <link href="assets/css/style.css" rel="stylesheet">
+  <!-- CSS personalizado -->
+  <link href="estilo.css" rel="stylesheet">
+	
+
+	
+	
 </head>
 <body>
     <!-- Header y navegación igual que en index.php -->
@@ -247,6 +263,11 @@ $conn->close();
             <li class="nav-item flex-fill" role="presentation">
                 <button class="nav-link w-100 active" id="home-tab" data-bs-toggle="tab" data-bs-target="#bordered-justified-home" type="button" role="tab" aria-controls="home" aria-selected="true"><i class="bi bi-calendar4-week"></i> Calendario </button>
             </li>
+			
+			<li class="nav-item flex-fill" role="presentation">
+    <button class="nav-link w-100" id="docente-tab" data-bs-toggle="tab" data-bs-target="#bordered-justified-docente" type="button" role="tab" aria-controls="docente" aria-selected="false"><i class="ri ri-user-settings-line"></i> Equipo docente</button>
+</li>
+			
             <li class="nav-item flex-fill" role="presentation">
                 <button class="nav-link w-100" id="salas-tab" data-bs-toggle="tab" data-bs-target="#bordered-justified-salas" type="button" role="tab" aria-controls="salas" aria-selected="false"><i class="ri ri-map-pin-line"></i> Salas</button>
             </li>
@@ -325,6 +346,17 @@ $conn->close();
                                 </div>
                             </div>
         </div>
+		
+<!-- Tab Equipo docente -->
+<div class="tab-pane fade" id="bordered-justified-docente" role="tabpanel" aria-labelledby="docente-tab">
+    <div id="docentes-list">
+        <!-- Aquí se cargará el contenido de docentes -->
+        <div class="text-center p-4">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">Cargando equipo docente...</p>
+        </div>
+    </div>
+</div>
 
         <!-- Tab Salas (nuevo) -->
         <div class="tab-pane fade" id="bordered-justified-salas" role="tabpanel" aria-labelledby="salas-tab">
@@ -1217,6 +1249,54 @@ function calcularAlumnosPorSala() {
 	
 </script>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('docente-tab').addEventListener('click', function() {
+        const docentesList = document.getElementById('docentes-list');
+        
+        // Evitar cargar múltiples veces
+        if (docentesList.getAttribute('data-loaded') === 'true') return;
+        
+        // Mostrar indicador de carga
+        docentesList.innerHTML = '<div class="text-center p-5"><i class="bi bi-arrow-repeat spinner"></i><p>Cargando...</p></div>';
+        
+        fetch('1_asignar_docente_clinico.php?idcurso=<?php echo $idCurso; ?>')
+            .then(response => response.text())
+            .then(html => {
+                // Asegurarse de que el contenido se coloca dentro del elemento correcto
+                docentesList.innerHTML = html;
+                docentesList.setAttribute('data-loaded', 'true');
+                
+                // Inicializar Select2 después de cargar el contenido
+                if (typeof $ !== 'undefined' && $.fn.select2) {
+                    $('#docente').select2({
+                        theme: 'bootstrap-5',
+                        placeholder: '🔍 Buscar Docente',
+                        allowClear: true,
+                        language: {
+                            noResults: function() {
+                                return "No se encontraron docentes";
+                            },
+                            searching: function() {
+                                return "Buscando...";
+                            }
+                        },
+                        width: '100%',
+                        dropdownParent: $('#docente').parent()
+                   });
+                }
+            })
+            .catch(error => {
+                docentesList.innerHTML = '<div class="alert alert-danger">Error al cargar los datos</div>';
+            });
+    });
+});
+</script>
+
+<!-- Justo antes del cierre del body -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="docentes-handler.js"></script>
 	
 </body>
 </html>
